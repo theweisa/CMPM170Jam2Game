@@ -19,12 +19,12 @@ public class GravityControl : MonoBehaviour
     void FixedUpdate()
     {
         // if there is a planet to orbit
-        if (gravity) {
+        if (gravityObj) {
             Vector3 gravityUp = Vector3.zero;
             // get the obj pos compared to the gravity obj pos
             gravityUp = (transform.position-gravityObj.transform.position).normalized;
 
-            vector3 localUp = transform.up;
+            Vector3 localUp = transform.up;
 
             Quaternion targetRotation = Quaternion.FromToRotation(localUp, gravityUp)*transform.rotation;
             

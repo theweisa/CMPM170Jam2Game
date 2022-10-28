@@ -7,12 +7,6 @@ public class GravityOrbit : MonoBehaviour
     // center that objects orbit
     public float gravity;
 
-    private void OnTriggerEnter(collider obj) {
-        if (obj.GetComponent<GravityControl>()) {
-            obj.GetComponent<GravityControl>().gravityObj = this.GetComponent<GravityOrbit>();
-        }
-    }
-
     // Start is called before the first frame update
     void Start()
     {
@@ -24,4 +18,10 @@ public class GravityOrbit : MonoBehaviour
     {
         
     }
+
+    private void OnTriggerEnter(Collider obj) {
+        if (obj.GetComponent<GravityControl>()) {
+            obj.GetComponent<GravityControl>().gravityObj = this.GetComponent<GravityOrbit>();
+        }
+    }       
 }

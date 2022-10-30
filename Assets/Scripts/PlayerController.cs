@@ -4,30 +4,39 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public CharacterController controller;
+    public Camera cam;
+    private Rigidbody rb;
 
-    public float speed = 6f;
-
+    public float speed = 10f;
     public float turnSmoothTime = 0.1f; 
+    // public float jumpHeight = 1.0f;
+    // public float gravityValue = -9.81f;
+
     private float turnSmoothVelocity;
+
+    private Vector3 velocity;
+    private bool grounded;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        rb = GetComponent<Rigidbody>();
+        Cursor.visible = false;
     }
 
-    // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        float horiz = Input.GetAxisRaw("Horizontal");
-        float vert = Input.GetAxisRaw("Vertical");
-        Vector3 dir = new Vector3(horiz, 0f, vert).normalized;
+        // get axis' of movement (?)
+        float horiz = Input.GetAxis("Horizontal");
+        float vert = Input.GetAxis("Vertical");
 
-        if (dir.magnitude >= 0.1f) {
-            float targetAngle = Mathf.Atan2(dir.x, dir.y) * Mathf.Rad2Deg;
-            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
-            transform.rotation = Quaternion.Euler(0f, angle, 0f);
-            controller.Move(dir*speed*Time.deltaTime);
+        if (horiz <= 0.1f && vert <= 0.1f) {
+            rb.velocity = Vector3.zero;   
         }
+
+        Vector3 dir = new Vector3(horiz, rb.velocity.y, vert).normalized;
+        // dir = cam.transform.TransformDirection(dir);
+
+        rb.velocity = dir*speed;
     }
 }

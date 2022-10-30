@@ -8,7 +8,7 @@ public class GravityControl : MonoBehaviour
     public GravityOrbit gravityObj;
     private Rigidbody rb;
 
-    public float rotationSpeed = 20;
+    public float rotationSpeed;
 
     // Start is called before the first frame update
     void Start()
@@ -20,16 +20,22 @@ public class GravityControl : MonoBehaviour
     {
         // if there is a planet to orbit
         if (gravityObj) {
+            // gravity up is the upwards angle of the gravity object
             Vector3 gravityUp = Vector3.zero;
+
             // get the obj pos compared to the gravity obj pos
             gravityUp = (transform.position-gravityObj.transform.position).normalized;
 
+            // the players current up angle
             Vector3 localUp = transform.up;
 
+            // player rotation angle: get rotation from curr up to grav up; multiply by curr rotation (?)
             Quaternion targetRotation = Quaternion.FromToRotation(localUp, gravityUp)*transform.rotation;
-            
-            transform.up = Vector3.Lerp(transform.up, gravityUp, rotationSpeed*Time.deltaTime);
-
+            //rb.rotation = targetRotation;
+            transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            // set players curr up as a lerp; interpolation from curr Up to new Up
+            //transform.up = Vector3.Lerp(transform.up, targetRotation, rotationSpeed*Time.deltaTime);
+            // print(-gravityUp);
             rb.AddForce((-gravityUp*gravityObj.gravity)*rb.mass);
         }
     }

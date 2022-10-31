@@ -6,22 +6,12 @@ public class PlayerController : MonoBehaviour
 {
     public Camera cam;
     private Rigidbody rb;
-
-    public float speed = 10f;
-    public float turnSmoothTime = 0.1f; 
-    // public float jumpHeight = 1.0f;
-    // public float gravityValue = -9.81f;
-
-    private float turnSmoothVelocity;
-
-    private Vector3 velocity;
-    private bool grounded;
+    public float speed;
 
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        Cursor.visible = false;
     }
 
     void FixedUpdate()
@@ -30,13 +20,16 @@ public class PlayerController : MonoBehaviour
         float horiz = Input.GetAxis("Horizontal");
         float vert = Input.GetAxis("Vertical");
 
-        if (horiz <= 0.1f && vert <= 0.1f) {
-            rb.velocity = Vector3.zero;   
+        if (Mathf.Abs(horiz) <= 0.1f && Mathf.Abs(vert) <= 0.1f) {
+            rb.velocity = Vector3.zero;
         }
 
-        Vector3 dir = new Vector3(horiz, rb.velocity.y, vert).normalized;
+        Vector3 dir = new Vector3(horiz, 0f, vert).normalized;
         // dir = cam.transform.TransformDirection(dir);
 
-        rb.velocity = dir*speed;
+        dir = Quaternion.Euler(0,cam.transform.eulerAngles.y,0)*(dir*speed);
+
+        rb.velocity = dir;
+        // rb.AddForce(dir*speed);
     }
 }

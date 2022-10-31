@@ -31,11 +31,11 @@ public class GravityControl : MonoBehaviour
 
             // player rotation angle: get rotation from curr up to grav up; multiply by curr rotation (?)
             Quaternion targetRotation = Quaternion.FromToRotation(localUp, gravityUp)*transform.rotation;
-            //rb.rotation = targetRotation;
-            transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+
+            rb.rotation = targetRotation;
+            
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
             // set players curr up as a lerp; interpolation from curr Up to new Up
-            //transform.up = Vector3.Lerp(transform.up, targetRotation, rotationSpeed*Time.deltaTime);
-            // print(-gravityUp);
             rb.AddForce((-gravityUp*gravityObj.gravity)*rb.mass);
         }
     }

@@ -4,23 +4,33 @@ using UnityEngine;
 
 public class NoteScript : MonoBehaviour
 {
-    public PlanetScript planet;
-    public Transform spawnPoints;
+    private GameObject planet;
+    private PlanetScript planetScript;
+    private Transform spawnPoints;
+    public bool spawnNewNote = true; 
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        planet = GameObject.Find("Planet");
+        planetScript = planet.GetComponent<PlanetScript>();
+        spawnPoints = planet.transform.Find("NoteSpawnPoints");
+        InitRotation();
+    }
+
+    void InitRotation() {
+        Vector3 gravityUp = (transform.position-planet.transform.position).normalized;
+        transform.rotation = Quaternion.FromToRotation(transform.up, gravityUp)*transform.rotation;
     }
 
     // Update is called once per frame
     void Update()
     {
-        //transform.position = spawnPoints.transform.Find($"NoteSpawn{planet.GetShrinkCounter()}").position;
+        
     }
 
     private void spawnNote() {
-        Transform spawnPos = spawnPoints.transform.Find($"NoteSpawn{planet.GetShrinkCounter()}");
+        Transform spawnPos = spawnPoints.transform.Find($"NoteSpawn{planetScript.GetShrinkCounter()}");
         if (!spawnPos) {
             Destroy(this.gameObject);
             return;
@@ -35,8 +45,10 @@ public class NoteScript : MonoBehaviour
         if (obj.tag == "Player") {
             print("collected");
             gameObject.SetActive(false);
-            LTDescr done = planet.ShrinkPlanet();
-            done.setOnComplete(spawnNote);
+            LTDescr done = planetScript.ShrinkPlanet();
+            if (spawnNewNote) {
+                done.setOnComplete(spawnNote);
+            }
         }
     }
 }

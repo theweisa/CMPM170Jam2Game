@@ -7,6 +7,7 @@ public class NoteScript : MonoBehaviour
     private GameObject planet;
     private PlanetScript planetScript;
     private Transform spawnPoints;
+    private AIEnemy enemyScript;
     public bool spawnNewNote = true; 
 
     // Start is called before the first frame update
@@ -15,6 +16,7 @@ public class NoteScript : MonoBehaviour
         planet = GameObject.Find("Planet");
         planetScript = planet.GetComponent<PlanetScript>();
         spawnPoints = planet.transform.Find("NoteSpawnPoints");
+        enemyScript = GameObject.Find("Enemy").GetComponent<AIEnemy>();
         InitRotation();
     }
 
@@ -46,6 +48,7 @@ public class NoteScript : MonoBehaviour
             print("collected");
             gameObject.SetActive(false);
             LTDescr done = planetScript.ShrinkPlanet();
+            enemyScript.IncreaseChaseLevel();
             if (spawnNewNote) {
                 done.setOnComplete(spawnNote);
             }

@@ -21,7 +21,7 @@ public class GravityOrbit : MonoBehaviour
 
     private void OnTriggerEnter(Collider obj) {
         if (obj.GetComponent<GravityControl>()) {
-            print("set player grav to planet");
+            print("set object grav to planet");
             obj.GetComponent<GravityControl>().gravityObj = this.GetComponent<GravityOrbit>();
         }
     }       

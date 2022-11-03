@@ -8,7 +8,7 @@ public class GravityControl : MonoBehaviour
     public GravityOrbit gravityObj;
     private Rigidbody rb;
 
-    public float rotationSpeed;
+    private float rotationSpeed = 20;
 
     // Start is called before the first frame update
     void Start()

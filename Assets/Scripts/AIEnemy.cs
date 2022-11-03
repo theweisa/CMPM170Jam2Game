@@ -18,6 +18,8 @@ public class AIEnemy : MonoBehaviour
     private float chaseCooldownDuration = 5f;
     private float chaseCooldownTimer = 0f;
 
+    private Vector3 dir;
+
     public Transform player;
     private Rigidbody rb;
     
@@ -33,28 +35,37 @@ public class AIEnemy : MonoBehaviour
         speed is always capped at the player speed
         collecting a note should stun the enemy for a bit before it begins the chase again
     */
-    private void Update()
+    private void FixedUpdate()
     {
         //Check for sight?
         //playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer);
-        var distance = Vector3.Distance(transform.position, player.position);
+        float distance = Vector3.Distance(transform.position, player.position);
+        dir = (player.position - transform.position).normalized;
+        print(dir);
+        // always rotate the enemy towards the general direction of the player
+
+        Debug.DrawLine(transform.position, transform.position + dir * 10, Color.red, Mathf.Infinity);    
+
+        Vector3 pos = ProjectPointOnPlane(transform.up, transform.position, player.position);
+        transform.LookAt(pos, transform.up);
+
+        // player.Rotate(Vector3.up*inputX); 
         Debug.Log(distance);
-        if (distance <= detectDist && !chaseCooldown)
-        {
+        if (distance <= detectDist && !chaseCooldown) {
             ChasePlayer();
         }
-        else
-        {
+        else {
             SearchPlayer();
         }
-
         if (chaseCooldown) {
             UpdateChaseCooldown();
         }
-        //sees player
-        //if (playerInSightRange) ChasePlayer();
-        //attack/jumpscare?
-        //if (playerIn)
+    }
+
+    private Vector3 ProjectPointOnPlane(Vector3 planeNormal, Vector3 planePoint, Vector3 point) {
+        planeNormal.Normalize();
+        float distance = -Vector3.Dot(planeNormal.normalized, (point - planePoint));
+        return (point + planeNormal * distance);
     }
 
     private void ChasePlayer() {
@@ -62,9 +73,11 @@ public class AIEnemy : MonoBehaviour
             chasing = true;
         else {
             float chaseSpeed = baseChaseSpeed*(1f+(chaseLevel*0.075f));
-            transform.position = Vector3.MoveTowards(
+            rb.velocity = transform.forward*chaseSpeed*2;
+            /*transform.position = Vector3.MoveTowards(
                 transform.position, player.position, Time.deltaTime * chaseSpeed
-            );
+            );*/
+            
             chaseTimer += Time.deltaTime;
             if (chaseTimer >= chaseDuration) {
                 chaseCooldown = true;
@@ -77,9 +90,10 @@ public class AIEnemy : MonoBehaviour
 
     private void SearchPlayer() {
         float searchSpeed = baseSearchSpeed*(1f+(chaseLevel*0.075f));
-        transform.position = Vector3.MoveTowards(
-            transform.position, player.position, Time.deltaTime * searchSpeed
-        );
+        rb.velocity = transform.forward*searchSpeed*2;
+        transform.position += transform.forward * searchSpeed * Time.deltaTime;
+        // dir = transform.TransformDirection(dir);
+        //rb.velocity = dir*searchSpeed*Time.deltaTime*100;
     }
 
     private void UpdateChaseCooldown() {

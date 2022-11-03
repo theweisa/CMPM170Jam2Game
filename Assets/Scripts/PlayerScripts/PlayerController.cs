@@ -30,9 +30,9 @@ public class PlayerController : MonoBehaviour
 
         Vector3 relativeDir = vert * forward + horiz * right;
         */
-        /*if (Mathf.Abs(horiz) <= 0.1f && Mathf.Abs(vert) <= 0.1f) {
+        if (Mathf.Abs(horiz) <= 0.1f && Mathf.Abs(vert) <= 0.1f) {
             rb.velocity = Vector3.zero;
-        }*/
+        }
 
         Vector3 dir = new Vector3(horiz, 0f, vert).normalized;
         dir = transform.TransformDirection(dir);

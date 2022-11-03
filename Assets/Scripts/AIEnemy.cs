@@ -5,8 +5,8 @@ using UnityEngine.AI;
 
 public class AIEnemy : MonoBehaviour
 {
-    private float baseChaseSpeed = 4f;
-    private float baseSearchSpeed = 1.5f;
+    private float baseChaseSpeed = 8f;
+    private float baseSearchSpeed = 5f;
     private float detectDist = 8f;
     private int chaseLevel = 0;
 
@@ -66,20 +66,22 @@ public class AIEnemy : MonoBehaviour
         planeNormal.Normalize();
         float distance = -Vector3.Dot(planeNormal.normalized, (point - planePoint));
         return (point + planeNormal * distance);
-    }
+    }   
 
     private void ChasePlayer() {
+        print("chasing player");
         if (!chasing)
             chasing = true;
         else {
             float chaseSpeed = baseChaseSpeed*(1f+(chaseLevel*0.075f));
-            rb.velocity = transform.forward*chaseSpeed*2;
+            rb.velocity = transform.forward*chaseSpeed;
             /*transform.position = Vector3.MoveTowards(
                 transform.position, player.position, Time.deltaTime * chaseSpeed
             );*/
             
             chaseTimer += Time.deltaTime;
             if (chaseTimer >= chaseDuration) {
+                print("done chasing");
                 chaseCooldown = true;
                 chasing = false;
                 chaseTimer = 0f;
@@ -89,16 +91,15 @@ public class AIEnemy : MonoBehaviour
     }
 
     private void SearchPlayer() {
+        print("searching for player");
         float searchSpeed = baseSearchSpeed*(1f+(chaseLevel*0.075f));
-        rb.velocity = transform.forward*searchSpeed*2;
-        transform.position += transform.forward * searchSpeed * Time.deltaTime;
-        // dir = transform.TransformDirection(dir);
-        //rb.velocity = dir*searchSpeed*Time.deltaTime*100;
+        rb.velocity = transform.forward*searchSpeed;
     }
 
     private void UpdateChaseCooldown() {
         chaseCooldownTimer += Time.deltaTime;
         if (chaseCooldownTimer >= chaseCooldownDuration*(1f+(chaseLevel*0.75f))) {
+            print("can chase again");
             chaseCooldown = false;
             chaseCooldownTimer = 0f;
         }

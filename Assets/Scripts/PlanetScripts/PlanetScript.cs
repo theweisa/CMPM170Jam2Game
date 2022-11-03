@@ -28,7 +28,6 @@ public class PlanetScript : MonoBehaviour
         shrink_counter++;
         Vector3 newScale = baseScale * (1f-(shrink_factor*shrink_counter));
         return LeanTween.scale(gameObject, newScale, transition_timer);
-        //return LeanTween.descr(id);
     }
 
     public int GetShrinkCounter() {

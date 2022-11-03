@@ -21,7 +21,6 @@ public class PlayerController : MonoBehaviour
         float horiz = Input.GetAxis("Horizontal");
         float vert = Input.GetAxis("Vertical");
 
-
         Vector3 dir = new Vector3(horiz, 0f, vert).normalized;
         dir = transform.TransformDirection(dir);
         if (Mathf.Abs(horiz) <= 0.1f && Mathf.Abs(vert) <= 0.1f) {

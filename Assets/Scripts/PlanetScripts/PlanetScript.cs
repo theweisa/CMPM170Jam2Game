@@ -10,10 +10,13 @@ public class PlanetScript : MonoBehaviour
 
     private Vector3 baseScale;
     private int shrink_counter = 0;
+    public Transform planetPrefabs;
+    public NoteScript noteScript;
     // Start is called before the first frame update
     void Start()
     {
         baseScale = gameObject.transform.localScale;
+        noteScript.spawnNote();
     }
 
     // Update is called once per frame
@@ -27,6 +30,7 @@ public class PlanetScript : MonoBehaviour
         if (1f-(shrink_factor*(shrink_counter+1)) < min_size) return null;
         shrink_counter++;
         Vector3 newScale = baseScale * (1f-(shrink_factor*shrink_counter));
+
         return LeanTween.scale(gameObject, newScale, transition_timer);
     }
 

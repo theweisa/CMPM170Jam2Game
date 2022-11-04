@@ -5,18 +5,27 @@ using UnityEngine;
 public class NoteScript : MonoBehaviour
 {
     private GameObject planet;
+    private GameObject player;
     private PlanetScript planetScript;
     private Transform spawnPoints;
     private AIEnemy enemyScript;
     public bool spawnNewNote = true; 
+    private float rotateSpeed = 200f;
+    private float dist;
+    private float detectDist = 50f;
+
+    public AudioSource noteDetectSfx;
+    public AudioSource notePickupSfx;
 
     // Start is called before the first frame update
     void Start()
-    {
-        planet = GameObject.Find("Planet");
+    {   
+        player = GameObject.Find("Player");
+        planet = GameObject.Find("Planet");   
         planetScript = planet.GetComponent<PlanetScript>();
         spawnPoints = planet.transform.Find("NoteSpawnPoints");
         enemyScript = GameObject.Find("Enemy").GetComponent<AIEnemy>();
+        TweenUp();
         InitRotation();
     }
 
@@ -28,16 +37,43 @@ public class NoteScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        transform.Rotate(0f, rotateSpeed*Time.deltaTime, 0f);
+
+        dist = Vector3.Distance(transform.position, player.transform.position);
+        if (dist < detectDist) {
+            if (!noteDetectSfx.isPlaying) noteDetectSfx.Play();
+            noteDetectSfx.volume = (detectDist-dist)/detectDist;
+        }
+        else {
+            if (noteDetectSfx.isPlaying) noteDetectSfx.Stop();
+        }
+        // rotate the note
     }
 
-    private void spawnNote() {
-        Transform spawnPos = spawnPoints.transform.Find($"NoteSpawn{planetScript.GetShrinkCounter()}");
+    void TweenUp() {
+        print("tween up");
+        LTDescr up = LeanTween.move(gameObject, transform.position+transform.up*0.55f, 2f).setEase(LeanTweenType.easeInOutCubic);
+        up.setOnComplete(TweenDown);
+        //return up;
+    }
+
+    void TweenDown() {
+        print("tween down");
+        LTDescr down = LeanTween.move(gameObject, transform.position-transform.up*0.55f, 2f).setEase(LeanTweenType.easeInOutCubic);
+        down.setOnComplete(TweenUp);
+        //return down;
+    }
+
+    public void spawnNote() {
+        int spawnPoint = planetScript.GetShrinkCounter();
+        Transform spawnPos = spawnPoints.transform.Find($"NoteSpawn{spawnPoint}");
         if (!spawnPos) {
             Destroy(this.gameObject);
             return;
+            // you win!
         }
-        GameObject newNote = Instantiate(gameObject, spawnPos);
+        print($"spawn point: {spawnPoint}");
+        GameObject newNote = Instantiate(this.gameObject, spawnPos);
         newNote.SetActive(true);
         newNote.transform.position = spawnPos.position;
         Destroy(this.gameObject);
@@ -46,6 +82,7 @@ public class NoteScript : MonoBehaviour
     private void OnTriggerEnter(Collider obj) {
         if (obj.tag == "Player") {
             print("collected");
+            notePickupSfx.Play();
             gameObject.SetActive(false);
             LTDescr done = planetScript.ShrinkPlanet();
             enemyScript.IncreaseChaseLevel();

@@ -8,6 +8,7 @@ public class PlayerController : MonoBehaviour
     public Animator walkAnim;
     private Rigidbody rb;
     public float speed;
+    private bool gameOver = false;
 
     // Start is called before the first frame update
     void Start()
@@ -17,6 +18,7 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (gameOver) return;
         // get axis' of movement (?)
         float horiz = Input.GetAxis("Horizontal");
         float vert = Input.GetAxis("Vertical");
@@ -31,5 +33,13 @@ public class PlayerController : MonoBehaviour
             walkAnim.enabled = true;
             rb.velocity = dir*speed;
         }
+    }
+
+    public void SetGameOver(bool state) {
+        gameOver = state;
+    }
+
+    public bool GetGameOver() {
+        return gameOver;
     }
 }

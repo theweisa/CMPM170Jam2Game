@@ -6,12 +6,18 @@ using Kino;
 
 public class AIEnemy : MonoBehaviour
 {
+    // stats
     private float baseChaseSpeed = 8f;
     private float baseSearchSpeed = 5f;
     private float detectDist = 8f;
     private float glitchDist = 13f;
-    private int chaseLevel = 0;
+    public int chaseLevel = 0;
+    private float dist;
 
+    private Vector3 dir;
+    private bool gameOver = false;
+    
+    // timers
     private bool chasing = false;
     private float chaseDuration = 10f;
     private float chaseTimer = 0f;
@@ -19,17 +25,32 @@ public class AIEnemy : MonoBehaviour
     private bool chaseCooldown = false;
     private float chaseCooldownDuration = 5f;
     private float chaseCooldownTimer = 0f;
+    private float minCuteInterval = 2f;
+    private float maxCuteInterval = 5f;
+    private float cuteInterval = 5f;
+    private float cuteTimer = 0f;
+    
+    private float scaryDuration = 0.3f;
+    private float scaryTimer = 0f;
+    private bool scary = false;
 
-    private Vector3 dir;
-    private bool gameOver = false;
+    private int startScary = 2;
+    private int permaScary = 4;
 
+
+    // obj vars
     public Transform player;
     public AnalogGlitch glitch;
     public Collider rigidCollider;
     private Rigidbody rb;
+    private GameObject cuteEnemy;
+    private GameObject scaryEnemy;
+    
     
     void Start() {
         rb = GetComponent<Rigidbody>();
+        cuteEnemy = transform.Find("CuteEnemy").gameObject;
+        scaryEnemy = transform.Find("ScaryEnemy").gameObject;
     }
 
     // Update is called once per frame
@@ -46,27 +67,40 @@ public class AIEnemy : MonoBehaviour
             JumpScare();
             return;
         }
+        
         //Check for sight?
         //playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer);
-        float distance = Vector3.Distance(transform.position, player.position);
+        dist = Vector3.Distance(transform.position, player.position);
         dir = (player.position - transform.position).normalized;
         // always rotate the enemy towards the general direction of the player
-
-        Debug.DrawLine(transform.position, transform.position + dir * 10, Color.red, Mathf.Infinity);    
-
         Vector3 pos = ProjectPointOnPlane(transform.up, transform.position, player.position);
         transform.LookAt(pos, transform.up);
 
+        if (scary) {
+            cuteEnemy.SetActive(false);
+            scaryEnemy.SetActive(true);
+            if (chaseLevel <= permaScary) {
+                UpdateScary();
+            }
+        }
+        else {
+            scaryEnemy.SetActive(false);
+            cuteEnemy.SetActive(true);
+            if (chaseLevel >= startScary) {
+                UpdateCute();
+            }
+        }
+
         // player.Rotate(Vector3.up*inputX); 
-        Debug.Log(distance);
+        Debug.Log(dist);
         // apply glitch effect based on distance
-        if (distance <= glitchDist) {
-            GlitchEffect(distance);
+        if (dist <= glitchDist) {
+            GlitchEffect();
         }
         else {
             SetGlitch(0f);
         }
-        if (distance <= detectDist && !chaseCooldown) {
+        if (dist <= detectDist && !chaseCooldown) {
             ChasePlayer();
         }
         else {
@@ -84,7 +118,7 @@ public class AIEnemy : MonoBehaviour
         return (point + planeNormal * distance);
     }
 
-    private void GlitchEffect(float dist) {
+    private void GlitchEffect() {
         float glitchRatio = ((glitchDist-dist)/glitchDist)*0.6f;
         SetGlitch(glitchRatio);
     }
@@ -120,16 +154,47 @@ public class AIEnemy : MonoBehaviour
 
     private void SearchPlayer() {
         print("searching for player");
-        float searchSpeed = baseSearchSpeed*(1f+(chaseLevel*0.075f));
+        float searchSpeed = baseSearchSpeed*(1f+(chaseLevel*0.25f));
         rb.velocity = transform.forward*searchSpeed;
     }
 
     private void UpdateChaseCooldown() {
         chaseCooldownTimer += Time.deltaTime;
-        if (chaseCooldownTimer >= chaseCooldownDuration*(1f+(chaseLevel*0.75f))) {
+        if (chaseCooldownTimer >= chaseCooldownDuration*(1-(chaseLevel*0.15f))) {
             print("can chase again");
             chaseCooldown = false;
             chaseCooldownTimer = 0f;
+        }
+    }
+
+    private void UpdateCute() {
+        cuteTimer += Time.deltaTime;
+        if (cuteTimer >= cuteInterval) {
+            // change form for a bit
+            scary = true;
+            cuteTimer = 0f;
+            ChangeForm(scary);
+            cuteInterval = Random.Range(minCuteInterval*(1f-(chaseLevel*0.15f)), maxCuteInterval*(1f-(chaseLevel*0.15f)));
+        }
+    }
+
+    private void UpdateScary() {
+        scaryTimer += Time.deltaTime;
+        if (scaryTimer >= scaryDuration*(1+chaseLevel*0.25f)) {
+            scary = false;
+            scaryTimer = 0f;
+            ChangeForm(scary);
+        }
+    }
+
+    private void ChangeForm(bool isScary) {
+        if (isScary) {
+            cuteEnemy.SetActive(false);
+            scaryEnemy.SetActive(true);
+        }
+        else {
+            scaryEnemy.SetActive(false);
+            cuteEnemy.SetActive(true);
         }
     }
 

@@ -5,15 +5,22 @@ using UnityEngine;
 public class NoteScript : MonoBehaviour
 {
     private GameObject planet;
+    private GameObject player;
     private PlanetScript planetScript;
     private Transform spawnPoints;
     private AIEnemy enemyScript;
     public bool spawnNewNote = true; 
     private float rotateSpeed = 200f;
+    private float dist;
+    private float detectDist = 50f;
+
+    public AudioSource noteDetectSfx;
+    public AudioSource notePickupSfx;
 
     // Start is called before the first frame update
     void Start()
     {   
+        player = GameObject.Find("Player");
         planet = GameObject.Find("Planet");   
         planetScript = planet.GetComponent<PlanetScript>();
         spawnPoints = planet.transform.Find("NoteSpawnPoints");
@@ -30,8 +37,17 @@ public class NoteScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // rotate the note
         transform.Rotate(0f, rotateSpeed*Time.deltaTime, 0f);
+
+        dist = Vector3.Distance(transform.position, player.transform.position);
+        if (dist < detectDist) {
+            if (!noteDetectSfx.isPlaying) noteDetectSfx.Play();
+            noteDetectSfx.volume = (detectDist-dist)/detectDist;
+        }
+        else {
+            if (noteDetectSfx.isPlaying) noteDetectSfx.Stop();
+        }
+        // rotate the note
     }
 
     void TweenUp() {
@@ -66,6 +82,7 @@ public class NoteScript : MonoBehaviour
     private void OnTriggerEnter(Collider obj) {
         if (obj.tag == "Player") {
             print("collected");
+            notePickupSfx.Play();
             gameObject.SetActive(false);
             LTDescr done = planetScript.ShrinkPlanet();
             enemyScript.IncreaseChaseLevel();

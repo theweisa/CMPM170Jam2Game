@@ -9,14 +9,16 @@ public class NoteScript : MonoBehaviour
     private Transform spawnPoints;
     private AIEnemy enemyScript;
     public bool spawnNewNote = true; 
+    private float rotateSpeed = 200f;
 
     // Start is called before the first frame update
     void Start()
-    {
-        planet = GameObject.Find("Planet");
+    {   
+        planet = GameObject.Find("Planet");   
         planetScript = planet.GetComponent<PlanetScript>();
         spawnPoints = planet.transform.Find("NoteSpawnPoints");
         enemyScript = GameObject.Find("Enemy").GetComponent<AIEnemy>();
+        TweenUp();
         InitRotation();
     }
 
@@ -28,16 +30,34 @@ public class NoteScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        // rotate the note
+        transform.Rotate(0f, rotateSpeed*Time.deltaTime, 0f);
     }
 
-    private void spawnNote() {
-        Transform spawnPos = spawnPoints.transform.Find($"NoteSpawn{planetScript.GetShrinkCounter()}");
+    void TweenUp() {
+        print("tween up");
+        LTDescr up = LeanTween.move(gameObject, transform.position+transform.up*0.55f, 2f).setEase(LeanTweenType.easeInOutCubic);
+        up.setOnComplete(TweenDown);
+        //return up;
+    }
+
+    void TweenDown() {
+        print("tween down");
+        LTDescr down = LeanTween.move(gameObject, transform.position-transform.up*0.55f, 2f).setEase(LeanTweenType.easeInOutCubic);
+        down.setOnComplete(TweenUp);
+        //return down;
+    }
+
+    public void spawnNote() {
+        int spawnPoint = planetScript.GetShrinkCounter();
+        Transform spawnPos = spawnPoints.transform.Find($"NoteSpawn{spawnPoint}");
         if (!spawnPos) {
             Destroy(this.gameObject);
             return;
+            // you win!
         }
-        GameObject newNote = Instantiate(gameObject, spawnPos);
+        print($"spawn point: {spawnPoint}");
+        GameObject newNote = Instantiate(this.gameObject, spawnPos);
         newNote.SetActive(true);
         newNote.transform.position = spawnPos.position;
         Destroy(this.gameObject);

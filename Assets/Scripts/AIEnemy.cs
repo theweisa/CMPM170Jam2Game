@@ -2,16 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using Kino;
 
 public class AIEnemy : MonoBehaviour
 {
     private float baseChaseSpeed = 8f;
     private float baseSearchSpeed = 5f;
     private float detectDist = 8f;
+    private float glitchDist = 13f;
     private int chaseLevel = 0;
 
     private bool chasing = false;
-    private float chaseDuration = 5f;
+    private float chaseDuration = 10f;
     private float chaseTimer = 0f;
 
     private bool chaseCooldown = false;
@@ -19,8 +21,11 @@ public class AIEnemy : MonoBehaviour
     private float chaseCooldownTimer = 0f;
 
     private Vector3 dir;
+    private bool gameOver = false;
 
     public Transform player;
+    public AnalogGlitch glitch;
+    public Collider rigidCollider;
     private Rigidbody rb;
     
     void Start() {
@@ -37,11 +42,14 @@ public class AIEnemy : MonoBehaviour
     */
     private void FixedUpdate()
     {
+        if (gameOver) {
+            JumpScare();
+            return;
+        }
         //Check for sight?
         //playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer);
         float distance = Vector3.Distance(transform.position, player.position);
         dir = (player.position - transform.position).normalized;
-        print(dir);
         // always rotate the enemy towards the general direction of the player
 
         Debug.DrawLine(transform.position, transform.position + dir * 10, Color.red, Mathf.Infinity);    
@@ -51,6 +59,13 @@ public class AIEnemy : MonoBehaviour
 
         // player.Rotate(Vector3.up*inputX); 
         Debug.Log(distance);
+        // apply glitch effect based on distance
+        if (distance <= glitchDist) {
+            GlitchEffect(distance);
+        }
+        else {
+            SetGlitch(0f);
+        }
         if (distance <= detectDist && !chaseCooldown) {
             ChasePlayer();
         }
@@ -62,11 +77,24 @@ public class AIEnemy : MonoBehaviour
         }
     }
 
+    // from https://answers.unity.com/questions/648286/character-lookat-on-spherical-planet-face-y-to-tar.html
     private Vector3 ProjectPointOnPlane(Vector3 planeNormal, Vector3 planePoint, Vector3 point) {
         planeNormal.Normalize();
         float distance = -Vector3.Dot(planeNormal.normalized, (point - planePoint));
         return (point + planeNormal * distance);
-    }   
+    }
+
+    private void GlitchEffect(float dist) {
+        float glitchRatio = ((glitchDist-dist)/glitchDist)*0.6f;
+        SetGlitch(glitchRatio);
+    }
+
+    private void SetGlitch(float glitchVal) {
+        glitch.scanLineJitter = glitchVal;
+        glitch.verticalJump = glitchVal;
+        glitch.horizontalShake = glitchVal;
+        glitch.colorDrift = glitchVal;
+    }
 
     private void ChasePlayer() {
         print("chasing player");
@@ -107,5 +135,21 @@ public class AIEnemy : MonoBehaviour
 
     public void IncreaseChaseLevel() {
         chaseLevel++;
+    }
+
+    private void OnTriggerEnter(Collider obj) {
+        if (obj.tag == "Player") {
+            JumpScare();
+        }
+    }
+
+    private void JumpScare() {
+        player.gameObject.GetComponent<PlayerController>().SetGameOver(true);
+        gameOver = true;
+        rb.constraints = RigidbodyConstraints.FreezePosition;
+        rigidCollider.enabled = false;
+        transform.position = player.position + player.forward*2f;
+        transform.rotation = player.rotation;
+        transform.LookAt(player.position);
     }
 }

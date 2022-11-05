@@ -1,9 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class NoteScript : MonoBehaviour
 {
+    public Canvas CV;
+
     private GameObject planet;
     private GameObject player;
     private PlanetScript planetScript;
@@ -102,10 +105,12 @@ public class NoteScript : MonoBehaviour
 
     // code for when you win the game
     private void GameWon() {
-        bgm.pitch = 1f;
+        //bgm.pitch = 1f;
+        bgm.mute = true;
         RenderSettings.ambientIntensity = 1f;
         RenderSettings.reflectionIntensity = 1f;
 
         // type code for winning game transition
+        GameObject.FindGameObjectWithTag("Enemy").GetComponent<AIEnemy>().GameWin();
     }
 }

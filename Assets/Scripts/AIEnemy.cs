@@ -4,9 +4,13 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 using Kino;
+using UnityEngine.UI;
 
 public class AIEnemy : MonoBehaviour
 {
+    public Canvas CV;
+    public Canvas WinCV;
+
     // stats
     private float baseChaseSpeed = 8f;
     private float baseSearchSpeed = 5f;
@@ -54,8 +58,10 @@ public class AIEnemy : MonoBehaviour
 
     public AudioSource peekabooSfx;
     public AudioSource glitchSfx;
-    
-    
+
+    public AudioSource bgm;
+
+
     void Start() {
         rb = GetComponent<Rigidbody>();
         cuteEnemy = transform.Find("CuteEnemy").gameObject;
@@ -240,7 +246,13 @@ public class AIEnemy : MonoBehaviour
 
     // GAME OVER HERE
     private void GameOver() {
+        bgm.mute = true;
+        CV.gameObject.SetActive(true);
+    }
 
+    public void GameWin()
+    {
+        WinCV.gameObject.SetActive(true);
     }
 
     private void JumpScare() {

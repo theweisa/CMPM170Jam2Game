@@ -16,6 +16,8 @@ public class NoteScript : MonoBehaviour
 
     public AudioSource noteDetectSfx;
     public AudioSource notePickupSfx;
+    public AudioSource earthShakeSfx;
+    public AudioSource bgm;
 
     // Start is called before the first frame update
     void Start()
@@ -69,8 +71,8 @@ public class NoteScript : MonoBehaviour
         Transform spawnPos = spawnPoints.transform.Find($"NoteSpawn{spawnPoint}");
         if (!spawnPos) {
             Destroy(this.gameObject);
+            GameWon();
             return;
-            // you win!
         }
         print($"spawn point: {spawnPoint}");
         GameObject newNote = Instantiate(this.gameObject, spawnPos);
@@ -83,6 +85,11 @@ public class NoteScript : MonoBehaviour
         if (obj.tag == "Player") {
             print("collected");
             notePickupSfx.Play();
+            earthShakeSfx.Play();
+            if (noteDetectSfx.isPlaying) noteDetectSfx.Stop();
+            bgm.pitch *= 0.9f;
+            RenderSettings.ambientIntensity -= 0.2f;
+            RenderSettings.reflectionIntensity -= 0.2f;
             gameObject.SetActive(false);
             LTDescr done = planetScript.ShrinkPlanet();
             enemyScript.IncreaseChaseLevel();
@@ -90,5 +97,15 @@ public class NoteScript : MonoBehaviour
                 done.setOnComplete(spawnNote);
             }
         }
+    }
+
+
+    // code for when you win the game
+    private void GameWon() {
+        bgm.pitch = 1f;
+        RenderSettings.ambientIntensity = 1f;
+        RenderSettings.reflectionIntensity = 1f;
+
+        // type code for winning game transition
     }
 }

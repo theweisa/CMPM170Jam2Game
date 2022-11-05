@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.SceneManagement;
 using Kino;
 
 public class AIEnemy : MonoBehaviour
@@ -11,6 +12,7 @@ public class AIEnemy : MonoBehaviour
     private float baseSearchSpeed = 5f;
     private float detectDist = 8f;
     private float glitchDist = 13f;
+    private float peekabooDist = 20f;
     public int chaseLevel = 0;
     private float dist;
 
@@ -29,6 +31,10 @@ public class AIEnemy : MonoBehaviour
     private float maxCuteInterval = 5f;
     private float cuteInterval = 5f;
     private float cuteTimer = 0f;
+
+    private float peekabooInterval = 3f;
+    private float peekabooTimer;
+    private float peekabooPitch = 5f;
     
     private float scaryDuration = 0.3f;
     private float scaryTimer = 0f;
@@ -45,12 +51,16 @@ public class AIEnemy : MonoBehaviour
     private Rigidbody rb;
     private GameObject cuteEnemy;
     private GameObject scaryEnemy;
+
+    public AudioSource peekabooSfx;
+    public AudioSource glitchSfx;
     
     
     void Start() {
         rb = GetComponent<Rigidbody>();
         cuteEnemy = transform.Find("CuteEnemy").gameObject;
         scaryEnemy = transform.Find("ScaryEnemy").gameObject;
+        peekabooTimer = peekabooInterval;
     }
 
     // Update is called once per frame
@@ -93,6 +103,18 @@ public class AIEnemy : MonoBehaviour
 
         // player.Rotate(Vector3.up*inputX); 
         Debug.Log(dist);
+        if (dist <= peekabooDist) {
+            peekabooTimer += Time.deltaTime;
+            if (peekabooTimer >= peekabooInterval) {
+                if (!peekabooSfx.isPlaying) peekabooSfx.Play();
+                peekabooSfx.pitch = peekabooPitch-(chaseLevel*2.5f);
+                peekabooSfx.volume = ((peekabooDist-dist)/dist)+2f;
+                peekabooTimer = 0f;
+            }
+        }   
+        else {
+            peekabooSfx.Stop();
+        }
         // apply glitch effect based on distance
         if (dist <= glitchDist) {
             GlitchEffect();
@@ -112,9 +134,13 @@ public class AIEnemy : MonoBehaviour
     }
 
     // from https://answers.unity.com/questions/648286/character-lookat-on-spherical-planet-face-y-to-tar.html
-    private Vector3 ProjectPointOnPlane(Vector3 planeNormal, Vector3 planePoint, Vector3 point) {
+    private Vector3 ProjectPointOnPlane(
+        Vector3 planeNormal, Vector3 planePoint, Vector3 point
+    ) {
         planeNormal.Normalize();
-        float distance = -Vector3.Dot(planeNormal.normalized, (point - planePoint));
+        float distance = -Vector3.Dot(
+            planeNormal.normalized, (point - planePoint)
+        );
         return (point + planeNormal * distance);
     }
 
@@ -128,6 +154,9 @@ public class AIEnemy : MonoBehaviour
         glitch.verticalJump = glitchVal;
         glitch.horizontalShake = glitchVal;
         glitch.colorDrift = glitchVal;
+        if (!glitchSfx.isPlaying) glitchSfx.Play();
+        glitchSfx.volume = glitchVal+0.2f;
+        if (glitchVal == 0) glitchSfx.Stop();
     }
 
     private void ChasePlayer() {
@@ -135,7 +164,7 @@ public class AIEnemy : MonoBehaviour
         if (!chasing)
             chasing = true;
         else {
-            float chaseSpeed = baseChaseSpeed*(1f+(chaseLevel*0.075f));
+            float chaseSpeed = baseChaseSpeed*(1f+(chaseLevel*0.035f));
             rb.velocity = transform.forward*chaseSpeed;
             /*transform.position = Vector3.MoveTowards(
                 transform.position, player.position, Time.deltaTime * chaseSpeed
@@ -154,13 +183,13 @@ public class AIEnemy : MonoBehaviour
 
     private void SearchPlayer() {
         print("searching for player");
-        float searchSpeed = baseSearchSpeed*(1f+(chaseLevel*0.25f));
+        float searchSpeed = baseSearchSpeed*(1f+(chaseLevel*0.015f));
         rb.velocity = transform.forward*searchSpeed;
     }
 
     private void UpdateChaseCooldown() {
         chaseCooldownTimer += Time.deltaTime;
-        if (chaseCooldownTimer >= chaseCooldownDuration*(1-(chaseLevel*0.15f))) {
+        if (chaseCooldownTimer >= chaseCooldownDuration*(1-(chaseLevel*0.01f))) {
             print("can chase again");
             chaseCooldown = false;
             chaseCooldownTimer = 0f;
@@ -205,16 +234,26 @@ public class AIEnemy : MonoBehaviour
     private void OnTriggerEnter(Collider obj) {
         if (obj.tag == "Player") {
             JumpScare();
+            GameOver();
         }
+    }
+
+    // GAME OVER HERE
+    private void GameOver() {
+
     }
 
     private void JumpScare() {
         player.gameObject.GetComponent<PlayerController>().SetGameOver(true);
+        cuteEnemy.SetActive(false);
+        scaryEnemy.SetActive(true);
         gameOver = true;
         rb.constraints = RigidbodyConstraints.FreezePosition;
         rigidCollider.enabled = false;
-        transform.position = player.position + player.forward*2f;
-        transform.rotation = player.rotation;
-        transform.LookAt(player.position);
+        transform.position = player.position + player.forward*2.5f;
+        transform.position = transform.position + transform.up*0.2f;
+        transform.eulerAngles = player.eulerAngles;
+        transform.Rotate(0f, 180f, 0f);
+        // transform.LookAt(player.position);
     }
 }

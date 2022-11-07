@@ -56,14 +56,12 @@ public class NoteScript : MonoBehaviour
     }
 
     void TweenUp() {
-        print("tween up");
         LTDescr up = LeanTween.move(gameObject, transform.position+transform.up*0.55f, 2f).setEase(LeanTweenType.easeInOutCubic);
         up.setOnComplete(TweenDown);
         //return up;
     }
 
     void TweenDown() {
-        print("tween down");
         LTDescr down = LeanTween.move(gameObject, transform.position-transform.up*0.55f, 2f).setEase(LeanTweenType.easeInOutCubic);
         down.setOnComplete(TweenUp);
         //return down;

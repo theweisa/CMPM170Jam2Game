@@ -36,13 +36,15 @@ public class AIEnemy : MonoBehaviour
     private float cuteInterval = 5f;
     private float cuteTimer = 0f;
 
-    private float peekabooInterval = 3f;
+    private float peekabooInterval = 5f;
     private float peekabooTimer;
-    private float peekabooPitch = 5f;
+    private float peekabooPitch = 2f;
     
     private float scaryDuration = 0.3f;
     private float scaryTimer = 0f;
     private bool scary = false;
+
+    private float gameOverTimer = 2.5f;
 
     private int startScary = 2;
     private int permaScary = 4;
@@ -81,6 +83,10 @@ public class AIEnemy : MonoBehaviour
     {
         if (gameOver) {
             JumpScare();
+            gameOverTimer-=Time.deltaTime;
+            if (gameOverTimer <= 0f) {
+                GameOver();
+            }
             return;
         }
         
@@ -108,18 +114,15 @@ public class AIEnemy : MonoBehaviour
         }
 
         // player.Rotate(Vector3.up*inputX); 
-        Debug.Log(dist);
+        // Debug.Log(dist);
         if (dist <= peekabooDist) {
             peekabooTimer += Time.deltaTime;
             if (peekabooTimer >= peekabooInterval) {
                 if (!peekabooSfx.isPlaying) peekabooSfx.Play();
-                peekabooSfx.pitch = peekabooPitch-(chaseLevel*2.5f);
-                peekabooSfx.volume = ((peekabooDist-dist)/dist)+2f;
+                peekabooSfx.pitch = peekabooPitch*(1f-(0.1f*chaseLevel));
+                peekabooSfx.volume = ((peekabooDist-dist)/dist)+0.3f;
                 peekabooTimer = 0f;
             }
-        }   
-        else {
-            peekabooSfx.Stop();
         }
         // apply glitch effect based on distance
         if (dist <= glitchDist) {
@@ -128,7 +131,7 @@ public class AIEnemy : MonoBehaviour
         else {
             SetGlitch(0f);
         }
-        if (dist <= detectDist && !chaseCooldown) {
+        if (dist <= detectDist*(1+chaseLevel*0.2) && !chaseCooldown) {
             ChasePlayer();
         }
         else {
@@ -170,7 +173,7 @@ public class AIEnemy : MonoBehaviour
         if (!chasing)
             chasing = true;
         else {
-            float chaseSpeed = baseChaseSpeed*(1f+(chaseLevel*0.035f));
+            float chaseSpeed = baseChaseSpeed*(1f+(chaseLevel*0.1f));
             rb.velocity = transform.forward*chaseSpeed;
             /*transform.position = Vector3.MoveTowards(
                 transform.position, player.position, Time.deltaTime * chaseSpeed
@@ -189,13 +192,13 @@ public class AIEnemy : MonoBehaviour
 
     private void SearchPlayer() {
         print("searching for player");
-        float searchSpeed = baseSearchSpeed*(1f+(chaseLevel*0.015f));
+        float searchSpeed = baseSearchSpeed*(1f+(chaseLevel*0.1f));
         rb.velocity = transform.forward*searchSpeed;
     }
 
     private void UpdateChaseCooldown() {
         chaseCooldownTimer += Time.deltaTime;
-        if (chaseCooldownTimer >= chaseCooldownDuration*(1-(chaseLevel*0.01f))) {
+        if (chaseCooldownTimer >= chaseCooldownDuration*(1-(chaseLevel*0.1f))) {
             print("can chase again");
             chaseCooldown = false;
             chaseCooldownTimer = 0f;
@@ -240,7 +243,6 @@ public class AIEnemy : MonoBehaviour
     private void OnTriggerEnter(Collider obj) {
         if (obj.tag == "Player") {
             JumpScare();
-            GameOver();
         }
     }
 
